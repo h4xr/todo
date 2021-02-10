@@ -1,6 +1,7 @@
 from configobj import ConfigObj
 import os
 import socket
+import time
 
 SERVICE_DIR = 'services/'
 
@@ -23,6 +24,10 @@ def walkthrough(section,obj):
         services = section['preload'].split(' ')
         for service in services:
             launchsvc(service, obj[service]['host'], obj[service]['port'])
+            # This ends up launching todo AND users
+            # Give a moment for service to load
+            # This way the catchall launchsvc outside this loop properly sees it up already
+            time.sleep(1)
     launchsvc(section.name, section['host'], section['port'])
 
 def loadDependencies():
