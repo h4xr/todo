@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, make_response
 import json
-import requests
 import os
 import subprocess
 
