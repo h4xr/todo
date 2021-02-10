@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, make_response
 import json
 import os
+import subprocess
 
 app = Flask(__name__)
 
@@ -33,6 +34,34 @@ def user_list(username):
         return "No list found"
 
     return jsonify(todo_list[username])
+
+# Lets add a nice way to catalog service pids and kill them
+@app.route('/svcpslist', methods=['GET'])
+def ps_list():
+    ''' Returns a list of processes '''
+
+    pslist = {}
+    proc = subprocess.Popen(['pgrep', '-a', 'python'],stdout=subprocess.PIPE)
+    while True:
+      line = proc.stdout.readline()
+      if not line:
+        break
+      pid, _, name = line.split()
+      pslist[pid] = { "pid": pid, "name": name }
+    return jsonify(pslist)
+
+@app.route('/stopsvc', methods=['GET'])
+def stopsvc():
+    ''' Stops all svc processes '''
+
+    procs = json.loads(ps_list().get_data())
+    print "Killing the following processes:"
+    for proc in procs:
+        print "'{} - {}' ".format(proc, procs[proc]["name"])
+    output = subprocess.check_output(['pkill', 'python'])
+    # We will never get here
+    return jsonify('{"Status": "Stopped"}')
+
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
